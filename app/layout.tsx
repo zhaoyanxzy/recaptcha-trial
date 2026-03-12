@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,6 +28,35 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <Script
+          src={`https://www.google.com/recaptcha/api.js?render=${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}`}
+          strategy="afterInteractive"
+        />
+        <Script
+          id="recaptcha-execute"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof grecaptcha === 'undefined') {
+                grecaptcha = {
+                  ready: function(cb) {
+                    const c = '___grecaptcha_cfg';
+                    window[c] = window[c] || {};
+                    (window[c]['fns'] = window[c]['fns'] || []).push(cb);
+                  }
+                };
+              }
+
+              grecaptcha.ready(function() {
+                grecaptcha
+                  .execute('${process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}', { action: 'homepage' })
+                  .then(function(token) {
+                    console.log('reCAPTCHA token:', token);
+                  });
+              });
+            `,
+          }}
+        />
         {children}
       </body>
     </html>
